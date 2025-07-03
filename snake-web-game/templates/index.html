@@ -7,7 +7,20 @@
 </head>
 <body>
 	<h1> Snake Game </h1>
+	<h2 id=""score">Score: 0</h2>
+	<h2 id="highScore">High Score: 0</h2>
+
 	<canvas id="gameCanvas" width="600" height="600"></canvas>
+	<!--Game over overlay-->
+	<div id="gameOverOverlay" class="overlay">
+		<div class="overlay-content">
+			<h2>Game Over</h2>
+			<p>Your score: <span id="finalScore">0</span></p>
+			<button id="restartButton">Restart</button>
+		</div>
+	</div>
+
+	<!-- Link to js script -->
 	<script src="{{ url_for('static', filename='game.js') }}"></script>
 </body>
 </html>
