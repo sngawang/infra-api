@@ -1,26 +1,57 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-	<title>Snake Game</title>
-	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Snake Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-	<h1> Snake Game </h1>
-	<h2 id=""score">Score: 0</h2>
-	<h2 id="highScore">High Score: 0</h2>
+    <!-- Animated background particles -->
+    <div class="bg-particles"></div>
 
-	<canvas id="gameCanvas" width="600" height="600"></canvas>
-	<!--Game over overlay-->
-	<div id="gameOverOverlay" class="overlay">
-		<div class="overlay-content">
-			<h2>Game Over</h2>
-			<p>Your score: <span id="finalScore">0</span></p>
-			<button id="restartButton">Restart</button>
-		</div>
-	</div>
+    <div class="container">
+        <div class="game-wrapper">
+            <div class="game-header">
+                <h1 class="game-title">SNAKE</h1>
+                <div class="score-container">
+                    <div class="score-item">
+                        <span id="score">Score: 0</span>
+                    </div>
+                    <div class="score-item">
+                        <span id="high">High Score: 0</span>
+                    </div>
+                </div>
+            </div>
 
-	<!-- Link to js script -->
-	<script src="{{ url_for('static', filename='game.js') }}"></script>
+            <canvas id="gameCanvas" class="game-canvas" width="400" height="400"></canvas>
+
+            <div class="controls">
+                <p>Use arrow keys to control the snake</p>
+                <div class="controls-grid">
+                    <div class="control-key empty"></div>
+                    <div class="control-key">↑</div>
+                    <div class="control-key empty"></div>
+                    <div class="control-key">←</div>
+                    <div class="control-key">↓</div>
+                    <div class="control-key">→</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="gameOverOverlay" class="game-over-overlay">
+        <div class="game-over-content">
+            <h2 class="game-over-title">GAME OVER</h2>
+            <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+            <div class="game-buttons">
+                <button class="game-btn btn-restart" onclick="restartGame()">Play Again</button>
+                <button class="game-btn btn-end" onclick="endGame()">End Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='game.js') }}"></script>
 </body>
 </html>
