@@ -24,10 +24,16 @@
                 </div>
             </div>
 
-            <canvas id="gameCanvas" class="game-canvas" width="400" height="400"></canvas>
+            <div style="position: relative;">
+                <canvas id="gameCanvas" class="game-canvas" width="400" height="400"></canvas>
+                <!-- Pause indicator -->
+                <div id="pauseIndicator" class="pause-indicator">
+                    Game Paused - Press SPACE to Resume
+                </div>
+            </div>
 
             <div class="controls">
-                <p>Use arrow keys to control the snake</p>
+                <p>Use arrow keys to control the snake • Press SPACE to pause/resume</p>
                 <div class="controls-grid">
                     <div class="control-key empty"></div>
                     <div class="control-key">↑</div>
@@ -36,6 +42,17 @@
                     <div class="control-key">↓</div>
                     <div class="control-key">→</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Game Overlay -->
+    <div id="startGameOverlay" class="start-game-overlay">
+        <div class="start-game-content">
+            <h2 class="start-game-title">SNAKE GAME</h2>
+            <p class="start-game-subtitle">Get ready to eat some food and grow your snake!</p>
+            <div class="game-buttons">
+                <button class="game-btn btn-start" onclick="startGame()">Start Game</button>
             </div>
         </div>
     </div>

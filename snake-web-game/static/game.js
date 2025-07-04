@@ -24,21 +24,78 @@ let score = 0;
 let highScore = parseInt(localStorage.getItem('snakeHighScore')) || 0;
 let snake = [{ x: 200, y: 200 }];
 let food = randomFood();
-let gameRunning = true;
+let gameRunning = false;
+let gameStarted = false;
+let gamePaused = false;
+let gameLoop;
+
 const overlay = document.getElementById("gameOverOverlay");
+const startOverlay = document.getElementById("startGameOverlay");
+const pauseIndicator = document.getElementById("pauseIndicator");
 
 // Initialize game
 function initGame() {
     // Initialize high score display
     document.getElementById("high").textContent = `High Score: ${highScore}`;
     
+    // Draw initial state
+    drawInitialState();
+    
+    // Show start game overlay
+    startOverlay.style.display = "flex";
+}
+
+// Draw initial game state (paused)
+function drawInitialState() {
+    // Create gradient background
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, 'rgba(20, 30, 40, 0.9)');
+    gradient.addColorStop(1, 'rgba(40, 20, 60, 0.9)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid
+    drawGrid();
+    
+    // Draw food
+    drawFood();
+    
+    // Draw snake
+    drawSnake();
+}
+
+// Start the game
+function startGame() {
+    gameStarted = true;
+    gameRunning = true;
+    gamePaused = false;
+    startOverlay.style.display = "none";
+    pauseIndicator.style.display = "none";
+    
     // Start game loop
     gameLoop = setInterval(draw, 120);
 }
 
+// Pause/Resume game
+function togglePause() {
+    if (!gameStarted || !gameRunning) return;
+    
+    if (gamePaused) {
+        // Resume game
+        gamePaused = false;
+        pauseIndicator.style.display = "none";
+        gameLoop = setInterval(draw, 120);
+    } else {
+        // Pause game
+        gamePaused = true;
+        pauseIndicator.style.display = "block";
+        clearInterval(gameLoop);
+    }
+}
+
 // Main game drawing function
 function draw() {
-    if (!gameRunning) return;
+    if (!gameRunning || gamePaused) return;
 
     // Create gradient background
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -183,10 +240,13 @@ function createEatingEffect(x, y) {
 // Handle game over
 function gameOver() {
     gameRunning = false;
+    gameStarted = false;
+    gamePaused = false;
     clearInterval(gameLoop);
     
     document.getElementById("finalScore").textContent = score;
     overlay.style.display = "flex";
+    pauseIndicator.style.display = "none";
 
     // Update high score
     if (score > highScore) {
@@ -198,7 +258,7 @@ function gameOver() {
 
 // Handle direction changes
 function changeDirection(e) {
-    if (!gameRunning) return;
+    if (!gameRunning || gamePaused) return;
 
     switch(e.key) {
         case "ArrowUp":
@@ -213,6 +273,11 @@ function changeDirection(e) {
         case "ArrowRight":
             if (dx === 0) { dx = box; dy = 0; }
             break;
+        case " ":
+        case "Space":
+            e.preventDefault();
+            togglePause();
+            break;
     }
 }
 
@@ -223,10 +288,13 @@ function restartGame() {
     dy = 0;
     score = 0;
     gameRunning = true;
+    gameStarted = true;
+    gamePaused = false;
     food = randomFood();
 
     document.getElementById("score").textContent = `Score: ${score}`;
     overlay.style.display = "none";
+    pauseIndicator.style.display = "none";
 
     clearInterval(gameLoop);
     gameLoop = setInterval(draw, 120);
@@ -235,8 +303,22 @@ function restartGame() {
 // End game
 function endGame() {
     overlay.style.display = "none";
+    startOverlay.style.display = "flex";
     gameRunning = false;
+    gameStarted = false;
+    gamePaused = false;
     clearInterval(gameLoop);
+    
+    // Reset game state
+    snake = [{ x: 200, y: 200 }];
+    dx = box;
+    dy = 0;
+    score = 0;
+    food = randomFood();
+    document.getElementById("score").textContent = `Score: ${score}`;
+    
+    // Draw initial state
+    drawInitialState();
 }
 
 // Generate random food position
