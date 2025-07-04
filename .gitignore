@@ -1,0 +1,33 @@
+# Bytecode files
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+venv/
+.env.local
+*.env
+
+# OS-specific
+.DS_Store
+
+# Flask/Deployment
+instance/
+*.sqlite3
+*.db
+*.log
+
+# Virtualenv folders
+env/
+ENV/
+.venv/
+
+# VS Code
+.vscode/
+
+# IDEs
+.idea/
+*.swp
+
+# Your high score file
+scores.json
