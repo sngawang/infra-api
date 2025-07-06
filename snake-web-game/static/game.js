@@ -21,7 +21,7 @@ const box = 20;
 let dx = box;
 let dy = 0;
 let score = 0;
-let highScore = parseInt(localStorage.getItem('snakeHighScore')) || 0;
+let highScore = 0;
 let snake = [{ x: 200, y: 200 }];
 let food = randomFood();
 let gameRunning = false;
@@ -33,9 +33,53 @@ const overlay = document.getElementById("gameOverOverlay");
 const startOverlay = document.getElementById("startGameOverlay");
 const pauseIndicator = document.getElementById("pauseIndicator");
 
+// API functions for backend communication
+async function fetchHighScore() {
+    try {
+        const response = await fetch('/api/high-score');
+        const data = await response.json();
+        return data.highScore;
+    } catch (error) {
+        console.error('Error fetching high score:', error);
+        return 0;
+    }
+}
+
+async function saveHighScore(score, playerName = 'Anonymous') {
+    try {
+        const response = await fetch('/api/high-score', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                score: score,
+                playerName: playerName
+            })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error saving high score:', error);
+        return null;
+    }
+}
+
+async function fetchLeaderboard() {
+    try {
+        const response = await fetch('/api/leaderboard');
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        return [];
+    }
+}
+
 // Initialize game
-function initGame() {
-    // Initialize high score display
+async function initGame() {
+    // Load high score from backend
+    highScore = await fetchHighScore();
     document.getElementById("high").textContent = `High Score: ${highScore}`;
     
     // Draw initial state
@@ -238,21 +282,59 @@ function createEatingEffect(x, y) {
 }
 
 // Handle game over
-function gameOver() {
+async function gameOver() {
     gameRunning = false;
     gameStarted = false;
     gamePaused = false;
     clearInterval(gameLoop);
     
     document.getElementById("finalScore").textContent = score;
-    overlay.style.display = "flex";
     pauseIndicator.style.display = "none";
 
-    // Update high score
+    // Save score to backend if it's a new high score
     if (score > highScore) {
-        highScore = score;
-        document.getElementById("high").textContent = `High Score: ${highScore}`;
-        localStorage.setItem('snakeHighScore', highScore.toString());
+        const playerName = prompt("New High Score! Enter your name:") || "Anonymous";
+        const result = await saveHighScore(score, playerName);
+        
+        if (result && result.success) {
+            highScore = result.highScore;
+            document.getElementById("high").textContent = `High Score: ${highScore}`;
+            
+            if (result.isNewRecord) {
+                // Add celebration effect for new record
+                createCelebrationEffect();
+            }
+        }
+    }
+    
+    overlay.style.display = "flex";
+}
+
+// Create celebration effect for new high score
+function createCelebrationEffect() {
+    const gameOverTitle = document.querySelector('.game-over-title');
+    gameOverTitle.textContent = 'NEW HIGH SCORE!';
+    gameOverTitle.style.color = '#ffd700';
+    gameOverTitle.style.animation = 'pulse 1s ease-in-out infinite';
+    
+    // Add confetti effect
+    for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.top = '-10px';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            confetti.style.borderRadius = '50%';
+            confetti.style.animation = 'fall 2s linear forwards';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.zIndex = '10000';
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => confetti.remove(), 2000);
+        }, i * 100);
     }
 }
 
@@ -295,6 +377,11 @@ function restartGame() {
     document.getElementById("score").textContent = `Score: ${score}`;
     overlay.style.display = "none";
     pauseIndicator.style.display = "none";
+    
+    // Reset game over title
+    document.querySelector('.game-over-title').textContent = 'GAME OVER';
+    document.querySelector('.game-over-title').style.color = '#ff6b6b';
+    document.querySelector('.game-over-title').style.animation = 'none';
 
     clearInterval(gameLoop);
     gameLoop = setInterval(draw, 120);
@@ -317,8 +404,45 @@ function endGame() {
     food = randomFood();
     document.getElementById("score").textContent = `Score: ${score}`;
     
+    // Reset game over title
+    document.querySelector('.game-over-title').textContent = 'GAME OVER';
+    document.querySelector('.game-over-title').style.color = '#ff6b6b';
+    document.querySelector('.game-over-title').style.animation = 'none';
+    
     // Draw initial state
     drawInitialState();
+}
+
+// Show leaderboard
+async function showLeaderboard() {
+    const leaderboard = await fetchLeaderboard();
+    let leaderboardHTML = '<h3>Top 10 Scores</h3><ul>';
+    
+    leaderboard.forEach((entry, index) => {
+        const date = new Date(entry.timestamp).toLocaleDateString();
+        leaderboardHTML += `<li>${index + 1}. ${entry.playerName} - ${entry.score} (${date})</li>`;
+    });
+    
+    leaderboardHTML += '</ul>';
+    
+    // Create leaderboard modal
+    const modal = document.createElement('div');
+    modal.className = 'leaderboard-modal';
+    modal.innerHTML = `
+        <div class="leaderboard-content">
+            ${leaderboardHTML}
+            <button onclick="closeLeaderboard()" class="game-btn btn-end">Close</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// Close leaderboard
+function closeLeaderboard() {
+    const modal = document.querySelector('.leaderboard-modal');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 // Generate random food position
@@ -336,6 +460,71 @@ function randomFood() {
 
     return newFood;
 }
+
+// Add CSS for leaderboard modal
+const leaderboardCSS = `
+    .leaderboard-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .leaderboard-content {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        padding: 30px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        max-width: 400px;
+        width: 90%;
+    }
+    
+    .leaderboard-content h3 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        color: #4ecdc4;
+    }
+    
+    .leaderboard-content ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+    
+    .leaderboard-content li {
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-family: 'Orbitron', monospace;
+    }
+    
+    .leaderboard-content li:nth-child(1) { color: #ffd700; }
+    .leaderboard-content li:nth-child(2) { color: #c0c0c0; }
+    .leaderboard-content li:nth-child(3) { color: #cd7f32; }
+    
+    @keyframes fall {
+        to { transform: translateY(100vh) rotate(360deg); }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+`;
+
+// Add CSS to head
+const style = document.createElement('style');
+style.textContent = leaderboardCSS;
+document.head.appendChild(style);
 
 // Event listeners
 document.addEventListener("keydown", changeDirection);
