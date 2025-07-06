@@ -30,4 +30,4 @@ ENV/
 *.swp
 
 # Your high score file
-scores.json
+high_score.json
