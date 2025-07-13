@@ -49,3 +49,10 @@ python app.py
 # Or run via Docker
 docker build -t snake-game .
 docker run -p 5000:5000 snake-game
+
+
+## 🌐 Infrastructure Deployment
+
+The infrastructure for this app is built using Terraform on AWS.
+
+👉 [See detailed Terraform setup and deployment guide](aws-infra/README.md)
