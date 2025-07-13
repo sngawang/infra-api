@@ -31,3 +31,17 @@ ENV/
 
 # Your high score file
 high_score.json
+
+# AWS credentials and config
+.aws/
+
+# Terraform files inside aws-infra/
+aws-infra/.terraform/
+aws-infra/terraform.tfstate
+aws-infra/terraform.tfstate.backup
+aws-infra/*.tfvars
+
+# SSH keys
+*.pem
+*.key
+*.pub
