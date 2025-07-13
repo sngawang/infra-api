@@ -49,6 +49,7 @@ python app.py
 # Or run via Docker
 docker build -t snake-game .
 docker run -p 5000:5000 snake-game
+```
 
 
 ## 🌐 Infrastructure Deployment
